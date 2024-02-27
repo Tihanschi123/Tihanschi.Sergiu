@@ -1,16 +1,85 @@
 def urlify(text: list[str]) -> int:
-    space_count = text.count(' ')
-    new_length = len(text) + 2 * space_count
-    for i in range(len(text) - 1, -1, -1):
-        if text[i] == ' ':
-            text[new_length - 1] = '0'
-            text[new_length - 2] = '2'
-            text[new_length - 3] = '%'
-            new_length -= 3
+    slow = fast = 0
+    count_space = 0
+
+    while fast < len(text):
+        if text[fast] == '':
+            break
+        if text[fast] == ' ':
+            count_space += 1
+        fast += 1
+
+    del text[:fast - 1:-1]
+    new_size = fast - 1 + (2 * count_space)
+    text += [''] * (2 * count_space)
+
+    slow = len(text) - 1
+    fast -= 1
+
+    while fast >= 0:
+        if text[fast] == ' ':
+            text[slow] = '0'
+            text[slow - 1] = '2'
+            text[slow - 2] = '%'
+            slow -= 3
         else:
-            text[new_length - 1] = text[i]
-            new_length -= 1
-    return len(text)
-original_text = list('my url')
-new_length = urlify(original_text)
-print(new_len)
+            text[slow] = text[fast]
+            slow -= 1
+
+        fast -= 1
+
+    return new_size + 1
+
+
+text = list('my url') + [''] * 21
+
+new_len = urlify(text)
+
+assert new_len == 8
+assert text[:new_len] == list('my%20url')
+
+text = list('')
+new_len = urlify(text)
+
+assert new_len == 0
+assert text[:new_len] == list('')
+
+text = list(' my url ')
+new_len = urlify(text)
+
+assert new_len == 14
+assert text[:new_len] == list('%20my%20url%20')
+
+text = list(' my   url ')
+new_len = urlify(text)
+
+assert new_len == 20
+assert text[:new_len] == list('%20my%20%20%20url%20')
+
+text = list(' my url with multiple spaces and words ')
+new_len = urlify(text)
+
+assert new_len == 55
+assert text[:new_len] == list('%20my%20url%20with%20multiple%20spaces%20and%20words%20')
+
+text = list(' ')
+new_len = urlify(text)
+
+assert new_len == 3
+assert text[:new_len] == list('%20')
+
+text = list('myurl')
+new_len = urlify(text)
+
+assert new_len == 5
+assert text[:new_len] == list('myurl')
+
+text = list('  ')
+new_len = urlify(text)
+
+assert new_len == 6
+assert text[:new_len] == list('%20%20')
+
+text = list(input("Введи строку "))
+new_len = urlify(text)
+print(text)
